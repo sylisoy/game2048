@@ -34,6 +34,7 @@ class Game {
         this.initializeData();
         this.gameOver=false;
         this.count=0;
+        this.state=1;
 
     }
     initializeData() {
@@ -141,6 +142,7 @@ class Game {
                     arr[tail] = null;
                     //更新分数
                     points+=arr[head];
+                    this.currentPoints=arr[head];
                     moves.push([tail, head]);
                     head += incr;
                     tail += incr;
@@ -182,8 +184,10 @@ class Game {
                     // from:move[0],to:move[1]
                     moves.push([[i, move[0]], [i, move[1]]]);
                 }
+
                 this.points += result.points;
-                currentPoints=result.points;
+                currentPoints+=result.points;
+
             }
         } else if (command == 'up' || command == 'down') {
             //先把一列一列的数字拿出来，shift后再放回去
@@ -203,8 +207,9 @@ class Game {
                 for (let i = 0; i < gameSize; i++) {
                     this.data[i][j] = temp[i];
                 }
+
                 this.points += result.points;
-                currentPoints=result.points;
+                currentPoints+=result.points;
             }
         }
         if (moves.length != 0) {
@@ -404,13 +409,23 @@ class View {
 let container = document.getElementById("game-container");
 let points=document.getElementById('points');
 let current=document.getElementById('currentPoints');
+let restart=document.getElementById('restart');
+
 let game = new Game();
 let view = new View(container, game);
 view.drawGame();
-//添加键盘事件
 
+//重新开始游戏
+restart.addEventListener('click',function () {
+    //重新初始化游戏，
+    game.initializeData();
+    points.innerHTML=`Points:${game.points}`;
+    current.innerHTML='0';
+    view.drawGame();
+});
+
+//添加键盘事件
 document.onkeydown = function (event) {
-    let moves = null;
     let result =null;
     // //必须按下键盘才可以获得游戏结束。
     // if (game.isOver()){
@@ -427,23 +442,20 @@ document.onkeydown = function (event) {
     } else if (event.key == 'ArrowUp') {
         result = game.advance('up');
     }
-    let currPoints=0;
-    if (!result.over){
-        currPoints=result.currentPoints;
-    }
 
     if (result&& result.moves.length>0) {
 
         points.innerHTML=`Points:${game.points}`;
-        current.innerHTML=`+${currPoints}`
+        current.innerHTML=`${result.currentPoints}`;
         view.animate(result.moves);
         //这里延时0.5秒，与最后一步 移动方块是需要时间的,
         //需要画好了，才有游戏结束的标志
         setTimeout(function () {
             if (result.over){
-                alert("游戏结束了！")
+                alert("游戏结束了！");
+                //代表游戏结束
+                game.state=0;
             }
         },500);
-
     }
 }
