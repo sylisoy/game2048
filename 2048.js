@@ -32,6 +32,9 @@ class Game {
         //points是总分
         this.points=0;
         this.initializeData();
+        this.gameOver=false;
+        this.count=0;
+
     }
     initializeData() {
         this.data = [];
@@ -52,21 +55,49 @@ class Game {
     generateNewblock() {
         //数组记录此时哪些位置没有数字，也就是可以产生2的地方
         let possiblePositions = [];
+
         for (let i = 0; i < gameSize; i++) {
             for (let j = 0; j < gameSize; j++) {
                 if (this.data[i][j] == null) {
                     //数组的每组值都是一个坐标
                     possiblePositions.push([i, j])
+                    this.count++;
                 }
             }
         }
+
 
         //找出随机
         let position = randChoice(possiblePositions);
         //给这个位置赋值
         this.data[position[0]][position[1]] = 2;
     }
+    isOver(){
+        for (let i = 0; i < gameSize; i++) {
+            for (let j = 0; j < gameSize; j++) {
+                if (this.data[i][j] == null) {
+                    this.gameOver=false;
+                    return false;
+                }
+                //比较的是左右方向
+                if (j<gameSize-1){
+                    if (this.data[i][j]== this.data[i][j+1]){
+                        this.gameOver=false;
+                        return false;
+                    }
+                }
+                //比较上下方向
+                if(i<gameSize-1){
+                    if (this.data[i][j]==this.data[i+1][j]){
+                        this.gameOver=false;
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
 
+    }
     //转换矩阵
     shiftBlock(arr, reverse = false) {
         //双指针法，head和tail都是指针
@@ -150,9 +181,7 @@ class Game {
                 for (let move of result.moves) {
                     // from:move[0],to:move[1]
                     moves.push([[i, move[0]], [i, move[1]]]);
-                    console.log("w"+[[i, move[0]]+[i, move[1]]]);
                 }
-                console.log(moves);
                 this.points += result.points;
                 currentPoints=result.points;
             }
@@ -176,18 +205,20 @@ class Game {
                 }
                 this.points += result.points;
                 currentPoints=result.points;
-
             }
-
         }
-
         if (moves.length != 0) {
             this.generateNewblock();
+        }
+        let over=false;
+        if (game.isOver()){
+            over=true;
         }
         return{
             "moves":moves,
             "points":this.points,
-            "currentPoints":currentPoints
+            "currentPoints":currentPoints,
+            "over":over
         };
 
     }
@@ -251,11 +282,7 @@ class View {
         this.initializeContainer();
     }
     initializeContainer() {
-        this.container.style.width = canvasSize + "px";
-        this.container.style.height = canvasSize + "px";
-        this.container.style.backgroundColor = BackColor;
-        this.container.style.position = 'relative';
-        this.container.style.zIndex=1;
+
     }
     //获取坐标定位
     getGirdPosition(i, j) {
@@ -285,13 +312,17 @@ class View {
                     origin[1] + curTime / totalTime * (destination[1] - origin[1])
 
                 ];
-
-                block.style.top = currPosition[0]+'px';
-                block.style.left = currPosition[1]+'px';
+                //键盘按的很快时的优化，两种方法
+                //
+                if (block) {
+                    block.style.top = currPosition[0] + 'px';
+                    block.style.left = currPosition[1] + 'px';
+                }
 
             }
         } else {
             view.drawGame();
+
         }
     }
 
@@ -377,9 +408,16 @@ let game = new Game();
 let view = new View(container, game);
 view.drawGame();
 //添加键盘事件
+
 document.onkeydown = function (event) {
     let moves = null;
     let result =null;
+    // //必须按下键盘才可以获得游戏结束。
+    // if (game.isOver()){
+    //     console.log("gameOver");
+    //     alert("game");
+    // }
+
     if (event.key == 'ArrowLeft') {
         result = game.advance('left');
     } else if (event.key == 'ArrowRight') {
@@ -389,11 +427,23 @@ document.onkeydown = function (event) {
     } else if (event.key == 'ArrowUp') {
         result = game.advance('up');
     }
-    let currPoints=result.currentPoints;
+    let currPoints=0;
+    if (!result.over){
+        currPoints=result.currentPoints;
+    }
+
     if (result&& result.moves.length>0) {
 
         points.innerHTML=`Points:${game.points}`;
         current.innerHTML=`+${currPoints}`
         view.animate(result.moves);
+        //这里延时0.5秒，与最后一步 移动方块是需要时间的,
+        //需要画好了，才有游戏结束的标志
+        setTimeout(function () {
+            if (result.over){
+                alert("游戏结束了！")
+            }
+        },500);
+
     }
 }

@@ -120,7 +120,7 @@ class GameAgent{
             this.issueCommand(result.move);
             setTimeout(() => {
                 this.play(rounds-1);
-            }, 200)
+            }, 500)
         }
     }
 }

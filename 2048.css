@@ -2,16 +2,23 @@
     text-align: center;
 }
 #game-container{
+    width: 600px;
+    height: 600px;
+    background: #D4DFE7;
     position: relative;
     display: inline-block;
     z-index: 1;
     border-radius: 7%;
 
 }
-/* 类选择器 */
+/* id选择器 */
 #block{
     text-align: center;
     line-height: 130px;
     font-size: 50px;
     border-radius: 7%;
+}
+.message{
+    height: 200px;
+    background: red;
 }
