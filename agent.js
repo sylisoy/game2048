@@ -114,13 +114,12 @@ class GameAgent{
     //自己玩
     play(rounds=100){
         //rounds玩的次数
-
         if (rounds>0) {
             let result=this.evaluate();
             this.issueCommand(result.move);
             setTimeout(() => {
                 this.play(rounds-1);
-            }, 500)
+            }, 200)
         }
     }
 }

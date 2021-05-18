@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,16 +8,46 @@
     <title>2048</title>
     <link rel="stylesheet" href="./2048.css">
 </head>
+
 <body>
 <div id="main">
+    <!-- 两栏布局 左边自适应 -->
+    <div id="game-container"></div>
+    <div class="left">
+        <div class="title">
+                <span class="name">
+                     2048
+                </span>
+            <span class="info">
+                    按上、下、左、右键，即可开始游戏
+                </span>
+        </div>
+        <div class="score">
+            <div class="best">
+                    <span id="best-title">
+                        BEST
+                    </span>
+                <span id="best-score">
+                       0
+                    </span>
+            </div>
+            <div class="current">
+                    <span id="current-title">
+                        SCORE
+                    </span>
+                <span id="current-score">
+                        0
+                    </span>
+            </div>
+        </div>
 
-    <h3 id="points">Points:0</h3>
-    <h3 id="currentPoints"></h3>
-
-    <div id="game-container">
+        <div class="new-wrapper">
+               <span class="new-game">
+                new game
+               </span>
+        </div>
 
     </div>
-    <button id="restart">new game
 </div>
 <script src="./2048.js"></script>
 <script src="agent.js"></script>

@@ -1,15 +1,20 @@
 //Constant
-const canvasSize = 600;
-const blockSize = 130;
-//大背景
-const BackColor = '#D4DFE7';
+const canvasSize = 500;
+const blockSize = 100;
+//大背景在css中设置
 //所有格子
-const BackGroundColor = '#C4CED7';
+const BackGroundColor = '#CDC1B4';
 //有数字的格子
-const BackCurrentColor2= '#B6D1E7';
-const BackCurrentColor4='#92E752';
-const BackCurrentColor8='#D6E72E';
-const BackCurrentColor16='#D1BCE7';
+const BackCurrentColor2= '#EEE4DA';
+const BackCurrentColor4='#EDE0C8';
+const BackCurrentColor8='#F2B179';
+const BackCurrentColor16='#F59563';
+const BackCurrentColor32='#F67C5F';
+const BackCurrentColor64='#F65E3B';
+const BackCurrentColor128='#EDCF72';
+const BackCurrentColor256='#F3DC41';
+const BackCurrentColor512='#EAC74E';
+const BackCurrentColor1024='#E0B917';
 
 const gameSize = 4;
 //格子间隔 16
@@ -34,6 +39,7 @@ class Game {
         this.initializeData();
         this.gameOver=false;
         this.count=0;
+        this.maxScore=0;
         this.state=1;
 
     }
@@ -212,6 +218,15 @@ class Game {
                 currentPoints+=result.points;
             }
         }
+        //求最高分数,这里仅仅是比较了新一轮游戏中该移动的分数和原来的分数，同时会改变最高分数
+        //所以还得和最高分数比较
+        this.maxScore=this.points>this.maxScore ? this.points:this.maxScore;
+
+        let c=localStorage.getItem("maxScore");
+        this.maxScore=this.maxScore>c?this.maxScore:c;
+
+        localStorage.setItem("maxScore", this.maxScore);
+
         if (moves.length != 0) {
             this.generateNewblock();
         }
@@ -302,7 +317,6 @@ class View {
         if (curTime < totalTime) {
             setTimeout(() => {
                 this.doFrame(moves, curTime + 1 / frame_pre_second, totalTime)
-
             }, 1 / frame_pre_second * 1000);
 
             for (let move of moves) {
@@ -319,11 +333,13 @@ class View {
                 ];
                 //键盘按的很快时的优化，两种方法
                 //
+
                 if (block) {
                     block.style.top = currPosition[0] + 'px';
                     block.style.left = currPosition[1] + 'px';
+                }else {
+                    console.log(1)
                 }
-
             }
         } else {
             view.drawGame();
@@ -354,7 +370,6 @@ class View {
             this.blocks.push(temp);
         }
     }
-    //画每个格子
     drawBackgroundBlock(i, j, color) {
         let block = document.createElement('div');
         //先求position
@@ -367,72 +382,84 @@ class View {
 
         block.style.top = position[0] + 'px';
         block.style.left = position[1] + 'px';
+
+        block.style.textAlign = 'center';
         block.style.zIndex=3;
+        block.style.borderRadius=20+'px';
         this.container.append(block);
         //如果想要为当前有数字的格子添加上数字，则需要返回这个block
         return block;
     }
-    //画有数字的格子
     drawBlock(i, j, number) {
         let span = document.createElement("span");
         let text = document.createTextNode(number);
         let currentColor=null;
-        if (number==2){
-            currentColor=BackCurrentColor2;
-        } else  if(number==4){
-            currentColor=BackCurrentColor4;
-
-        }else  if(number==8){
-            currentColor=BackCurrentColor8;
-        }else  if(number==16){
-            currentColor=BackCurrentColor16;
+        switch (number) {
+            case 2:
+                currentColor=BackCurrentColor2;
+                break;
+            case 4:
+                currentColor=BackCurrentColor4;
+                break;
+            case 8:
+                currentColor=BackCurrentColor8;
+            case 16:
+                currentColor=BackCurrentColor16;
+                break;
+            case 32:
+                currentColor=BackCurrentColor32;
+                break;
+            case 64:
+                currentColor=BackCurrentColor64;
+                break;
+            case 128:
+                currentColor=BackCurrentColor128;
+                break;
+            case 256:
+                currentColor=BackCurrentColor256;
+                break;
+            case 512:
+                currentColor=BackCurrentColor512;
+                break;
+            case 1024:
+                currentColor=BackCurrentColor1024;
+                break;
         }
         let block = this.drawBackgroundBlock(i, j, currentColor);
-        span.style.position = "absolute";
         span.appendChild(text);
-        //把span 数字加到盒子里
-        //让数字居中,offsetHeight它返回该元素的像素高度，
-        // span.style.top=(blockSize-span.offsetHeight)/2;
-        // span.style.left=(blockSize-span.offsetWidth)/2;
+        span.style.lineHeight = 100 + 'px';
+        span.style.fontSize = 50+'px';
+        span.style.borderRadius=20+'px';
 
-        span.style.lineHeight = 130 + 'px';
-        span.style.fontSize = 50 + 'px';
-        span.style.textAlign = 'center';
         span.className='block';
-        block.style.zIndex=5;
+        block.style.zIndex=10;
         block.appendChild(span);
         return block;
     }
+
+
 }
 
 //Controller
 let container = document.getElementById("game-container");
-let points=document.getElementById('points');
-let current=document.getElementById('currentPoints');
-let restart=document.getElementById('restart');
-
+let points=document.getElementById('current-score');
+// let current=document.getElementById('currentPoints');
+let bestPoints=document.getElementById('best-score');
+let restart=document.querySelector('.new-game');
 let game = new Game();
 let view = new View(container, game);
 view.drawGame();
-
+bestPoints.innerText=`${localStorage.getItem("maxScore")}`;
 //重新开始游戏
 restart.addEventListener('click',function () {
     //重新初始化游戏，
     game.initializeData();
-    points.innerHTML=`Points:${game.points}`;
-    current.innerHTML='0';
+    points.innerHTML=`${game.points}`;
     view.drawGame();
 });
-
 //添加键盘事件
 document.onkeydown = function (event) {
     let result =null;
-    // //必须按下键盘才可以获得游戏结束。
-    // if (game.isOver()){
-    //     console.log("gameOver");
-    //     alert("game");
-    // }
-
     if (event.key == 'ArrowLeft') {
         result = game.advance('left');
     } else if (event.key == 'ArrowRight') {
@@ -444,9 +471,10 @@ document.onkeydown = function (event) {
     }
 
     if (result&& result.moves.length>0) {
-
-        points.innerHTML=`Points:${game.points}`;
-        current.innerHTML=`${result.currentPoints}`;
+        points.innerHTML=`${game.points}`;
+        // current.innerHTML=`${result.currentPoints}`;
+        best=localStorage.getItem("maxScore");
+        bestPoints.innerText=`${best}`;
         view.animate(result.moves);
         //这里延时0.5秒，与最后一步 移动方块是需要时间的,
         //需要画好了，才有游戏结束的标志
@@ -459,3 +487,4 @@ document.onkeydown = function (event) {
         },500);
     }
 }
+
